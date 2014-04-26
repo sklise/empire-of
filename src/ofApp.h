@@ -21,20 +21,20 @@ class ofApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 
-        ofVideoGrabber 		vidGrabber;
-        ofTexture			videoTexture;
-        int 				camWidth;
-        int 				camHeight;
+    ofVideoGrabber 		vidGrabber;
+    ofTexture			videoTexture;
+    int 				camWidth;
+    int 				camHeight;
 
-        // OSC stuff
-        void clearBundle();
-        template <class T>
-        void addMessage(string address, T data);
-        void sendBundle();
+    // OSC stuff
+    void clearBundle();
+    template <class T>
+    void addMessage(string address, T data);
+    void sendBundle();
 
-        string host;
-        int port;
-        ofxOscSender osc;
-        ofxOscBundle bundle;
+    string host;
+    int port;
+    ofxOscSender osc;
+    ofxOscBundle bundle;
 
 };
