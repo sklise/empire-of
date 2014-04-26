@@ -1,6 +1,8 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxOsc.h"
+#include "ofxNetwork.h"
 
 class ofApp : public ofBaseApp{
 
@@ -23,4 +25,16 @@ class ofApp : public ofBaseApp{
         ofTexture			videoTexture;
         int 				camWidth;
         int 				camHeight;
+
+        // OSC stuff
+        void clearBundle();
+        template <class T>
+        void addMessage(string address, T data);
+        void sendBundle();
+
+        string host;
+        int port;
+        ofxOscSender osc;
+        ofxOscBundle bundle;
+
 };

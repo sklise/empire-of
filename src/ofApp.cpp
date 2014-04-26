@@ -1,5 +1,50 @@
 #include "ofApp.h"
 
+
+
+void ofApp::clearBundle() {
+	bundle.clear();
+}
+
+template <>
+void ofApp::addMessage(string address, ofVec3f data) {
+	ofxOscMessage msg;
+	msg.setAddress(address);
+	msg.addFloatArg(data.x);
+	msg.addFloatArg(data.y);
+	msg.addFloatArg(data.z);
+	bundle.addMessage(msg);
+}
+
+template <>
+void ofApp::addMessage(string address, ofVec2f data) {
+	ofxOscMessage msg;
+	msg.setAddress(address);
+	msg.addFloatArg(data.x);
+	msg.addFloatArg(data.y);
+	bundle.addMessage(msg);
+}
+
+template <>
+void ofApp::addMessage(string address, float data) {
+	ofxOscMessage msg;
+	msg.setAddress(address);
+	msg.addFloatArg(data);
+	bundle.addMessage(msg);
+}
+
+template <>
+void ofApp::addMessage(string address, int data) {
+	ofxOscMessage msg;
+	msg.setAddress(address);
+	msg.addIntArg(data);
+	bundle.addMessage(msg);
+}
+
+void ofApp::sendBundle() {
+	osc.sendBundle(bundle);
+}
+
 //--------------------------------------------------------------
 void ofApp::setup(){
     camWidth = 1280;
@@ -18,11 +63,14 @@ void ofApp::setup(){
         }
 	}
     
-    vidGrabber.setDeviceID(5);
+    vidGrabber.setDeviceID(0);
 	vidGrabber.setDesiredFrameRate(60);
 	vidGrabber.initGrabber(camWidth,camHeight);
     videoTexture.allocate(camWidth,camHeight, GL_RGB);
 	ofSetVerticalSync(true);
+    host = "localhost";
+    port = 1337;
+    osc.setup(host, port);
 }
 
 //--------------------------------------------------------------
@@ -35,9 +83,10 @@ void ofApp::update(){
 	if (vidGrabber.isFrameNew()){
 		int totalPixels = camWidth*camHeight*3;
 		unsigned char * pixels = vidGrabber.getPixels();
-//		videoTexture.loadData(videoInverted, camWidth,camHeight, GL_RGB);
 	}
-    
+    clearBundle();
+    addMessage("/test",1);
+    sendBundle();
 
 }
 
