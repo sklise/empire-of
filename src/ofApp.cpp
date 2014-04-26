@@ -6,6 +6,7 @@ void ofApp::clearBundle() {
 	bundle.clear();
 }
 
+// Set up templates for sending OSC messages. This is becuase I don't feel like figuring out Redis in C++
 template <>
 void ofApp::addMessage(string address, ofVec3f data) {
 	ofxOscMessage msg;
@@ -63,7 +64,7 @@ void ofApp::setup(){
         }
 	}
     
-    vidGrabber.setDeviceID(0);
+    vidGrabber.setDeviceID(5);
 	vidGrabber.setDesiredFrameRate(60);
 	vidGrabber.initGrabber(camWidth,camHeight);
     videoTexture.allocate(camWidth,camHeight, GL_RGB);
@@ -84,7 +85,7 @@ void ofApp::update(){
 		int totalPixels = camWidth*camHeight*3;
 		unsigned char * pixels = vidGrabber.getPixels();
 	}
-    clearBundle();
+    clearBundle();  
     addMessage("/test",1);
     sendBundle();
 
@@ -93,8 +94,8 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
     ofSetHexColor(0xffffff);
-	vidGrabber.draw(20,20);
-	videoTexture.draw(20+camWidth,20,camWidth,camHeight);
+	vidGrabber.draw(0,0);
+	videoTexture.draw(camWidth,0,camWidth,camHeight);
 }
 
 //--------------------------------------------------------------
