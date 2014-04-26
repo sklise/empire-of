@@ -36,5 +36,13 @@ class ofApp : public ofBaseApp{
     int port;
     ofxOscSender osc;
     ofxOscBundle bundle;
-
+  
+    int skySample;
+    int lightsSample;
+    int flashTopLeft;
+    int flashLength;
+    int flashHeight;
+    ofColor sky;
+    ofColor lights;
+    bool showVideo = true;
 };

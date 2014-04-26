@@ -1,30 +1,11 @@
 #include "ofApp.h"
-
-
+#include "ofUtils.h"
 
 void ofApp::clearBundle() {
 	bundle.clear();
 }
 
 // Set up templates for sending OSC messages. This is becuase I don't feel like figuring out Redis in C++
-template <>
-void ofApp::addMessage(string address, ofVec3f data) {
-	ofxOscMessage msg;
-	msg.setAddress(address);
-	msg.addFloatArg(data.x);
-	msg.addFloatArg(data.y);
-	msg.addFloatArg(data.z);
-	bundle.addMessage(msg);
-}
-
-template <>
-void ofApp::addMessage(string address, ofVec2f data) {
-	ofxOscMessage msg;
-	msg.setAddress(address);
-	msg.addFloatArg(data.x);
-	msg.addFloatArg(data.y);
-	bundle.addMessage(msg);
-}
 
 template <>
 void ofApp::addMessage(string address, float data) {
@@ -35,11 +16,28 @@ void ofApp::addMessage(string address, float data) {
 }
 
 template <>
+void ofApp::addMessage(string address, string data) {
+  ofxOscMessage msg;
+  msg.setAddress(address);
+  msg.addStringArg(data);
+  bundle.addMessage(msg);
+}
+
+template <>
 void ofApp::addMessage(string address, int data) {
 	ofxOscMessage msg;
 	msg.setAddress(address);
 	msg.addIntArg(data);
 	bundle.addMessage(msg);
+}
+
+template <>
+void ofApp::addMessage(string address, ofColor data) {
+  ofxOscMessage msg;
+  msg.setAddress(address);
+  msg.addStringArg(string(ofToHex(data.getHex())));
+  cout << string(ofToHex(data.getHex())) << endl;
+  	bundle.addMessage(msg);
 }
 
 void ofApp::sendBundle() {
@@ -64,38 +62,62 @@ void ofApp::setup(){
         }
 	}
     
-    vidGrabber.setDeviceID(5);
-	vidGrabber.setDesiredFrameRate(60);
-	vidGrabber.initGrabber(camWidth,camHeight);
-    videoTexture.allocate(camWidth,camHeight, GL_RGB);
-	ofSetVerticalSync(true);
-    host = "localhost";
-    port = 1337;
-    osc.setup(host, port);
+  vidGrabber.setDeviceID(5);
+  vidGrabber.setDesiredFrameRate(60);
+  vidGrabber.initGrabber(camWidth,camHeight);
+  videoTexture.allocate(camWidth,camHeight, GL_RGB);
+  ofSetVerticalSync(true);
+  host = "localhost";
+  port = 1337;
+  osc.setup(host, port);
+  skySample = 4000;
+  lightsSample = 640800;
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-    
+  clearBundle();
 	ofBackground(100,100,100);
 	
 	vidGrabber.update();
 	
 	if (vidGrabber.isFrameNew()){
 		int totalPixels = camWidth*camHeight*3;
-		unsigned char * pixels = vidGrabber.getPixels();
-	}
-    clearBundle();  
-    addMessage("/test",1);
-    sendBundle();
 
+		unsigned char * pixels = vidGrabber.getPixels();
+    sky = ofFloatColor(vidGrabber.getPixels()[skySample*3]/255.f,
+                  vidGrabber.getPixels()[skySample*3+1]/255.f,
+                  vidGrabber.getPixels()[skySample*3+2]/255.f);
+    lights = ofFloatColor(vidGrabber.getPixels()[lightsSample*3]/255.f,
+                          vidGrabber.getPixels()[lightsSample*3+1]/255.f,
+                          vidGrabber.getPixels()[lightsSample*3+2]/255.f);
+    addMessage("/lights",lights);
+    addMessage("/sky",sky);
+	}
+  sendBundle();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+  if (showVideo) {
     ofSetHexColor(0xffffff);
-	vidGrabber.draw(0,0);
-	videoTexture.draw(camWidth,0,camWidth,camHeight);
+    vidGrabber.draw(0,0);
+    videoTexture.draw(camWidth,0,camWidth,camHeight);
+  }
+  
+  ofSetColor(sky);
+  ofRect(10, 10, 20, 20);
+  ofSetColor(lights);
+  ofRect(10, 30, 20, 20);
+  
+  // draw the location of the sky sample
+  ofSetColor(255,0,0,255);
+  ofRect(skySample%camWidth,skySample/camWidth,4,4);
+
+  // draw the location of the lights sample
+  ofSetColor(0,255,0,255);
+  ofRect(lightsSample%camWidth,lightsSample/camWidth,4,4);
+
 }
 
 //--------------------------------------------------------------
@@ -105,7 +127,11 @@ void ofApp::keyPressed(int key){
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-
+  switch (key) {
+    case 32:
+      showVideo = !showVideo;
+      break;
+  }
 }
 
 //--------------------------------------------------------------
