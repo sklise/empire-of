@@ -62,7 +62,7 @@ void ofApp::setup(){
         }
 	}
     
-  vidGrabber.setDeviceID(5);
+  vidGrabber.setDeviceID(0);
   vidGrabber.setDesiredFrameRate(60);
   vidGrabber.initGrabber(camWidth,camHeight);
   videoTexture.allocate(camWidth,camHeight, GL_RGB);
@@ -76,7 +76,6 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::update(){
-  clearBundle();
 	ofBackground(100,100,100);
 	
 	vidGrabber.update();
@@ -91,10 +90,11 @@ void ofApp::update(){
     lights = ofFloatColor(vidGrabber.getPixels()[lightsSample*3]/255.f,
                           vidGrabber.getPixels()[lightsSample*3+1]/255.f,
                           vidGrabber.getPixels()[lightsSample*3+2]/255.f);
+    clearBundle();
     addMessage("/lights",lights);
     addMessage("/sky",sky);
+    sendBundle();
 	}
-  sendBundle();
 }
 
 //--------------------------------------------------------------
