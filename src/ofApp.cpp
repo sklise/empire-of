@@ -49,7 +49,7 @@ void ofApp::setup(){
     camWidth = 1280;
     camHeight = 720;
     
-    environs_refresh_rate = 45;
+    environs_refresh_rate = 1;
 
     //we can now get back a list of devices.
     vector<ofVideoDevice> devices = vidGrabber.listDevices();
@@ -93,8 +93,7 @@ void ofApp::update(){
 
         // Clear the bundle to get ready to send info to OSC
         clearBundle();
-            
-        if (environsTimer.getElapsedSeconds() >= 45) {
+        if (environsTimer.getElapsedSeconds() >= environs_refresh_rate) {
             cout << "elapsed" << endl;
             sky = ofFloatColor(vidGrabber.getPixels()[skySample*3]/255.f, vidGrabber.getPixels()[skySample*3+1]/255.f, vidGrabber.getPixels()[skySample*3+2]/255.f);
             lights = ofFloatColor(vidGrabber.getPixels()[lightsSample*3]/255.f, vidGrabber.getPixels()[lightsSample*3+1]/255.f, vidGrabber.getPixels()[lightsSample*3+2]/255.f);
