@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>641B56A5-D121-4109-A2AD-5A6F4896A504</string>
+	<key>IDESourceControlProjectName</key>
+	<string>empire</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>999A539D-0D82-45AE-8CF4-B12F55EFF95B</key>
+		<string>ssh://github.com/sklise/empire-of.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>empire.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>999A539D-0D82-45AE-8CF4-B12F55EFF95B</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>ssh://github.com/sklise/empire-of.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>999A539D-0D82-45AE-8CF4-B12F55EFF95B</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>999A539D-0D82-45AE-8CF4-B12F55EFF95B</string>
+			<key>IDESourceControlWCCName</key>
+			<string>empire</string>
+		</dict>
+	</array>
+</dict>
+</plist>

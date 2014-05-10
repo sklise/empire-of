@@ -17,10 +17,10 @@ void ofApp::addMessage(string address, float data) {
 
 template <>
 void ofApp::addMessage(string address, string data) {
-  ofxOscMessage msg;
-  msg.setAddress(address);
-  msg.addStringArg(data);
-  bundle.addMessage(msg);
+    ofxOscMessage msg;
+    msg.setAddress(address);
+    msg.addStringArg(data);
+    bundle.addMessage(msg);
 }
 
 template <>
@@ -33,11 +33,11 @@ void ofApp::addMessage(string address, int data) {
 
 template <>
 void ofApp::addMessage(string address, ofColor data) {
-  ofxOscMessage msg;
-  msg.setAddress(address);
-  msg.addStringArg(string(ofToHex(data.getHex())));
-  cout << string(ofToHex(data.getHex())) << endl;
-  	bundle.addMessage(msg);
+    ofxOscMessage msg;
+    msg.setAddress(address);
+    msg.addStringArg(string(ofToHex(data.getHex())));
+    cout << string(ofToHex(data.getHex())) << endl;
+    bundle.addMessage(msg);
 }
 
 void ofApp::sendBundle() {
@@ -49,29 +49,35 @@ void ofApp::setup(){
     camWidth = 1280;
     camHeight = 720;
     
+    environs_refresh_rate = 45;
+
     //we can now get back a list of devices.
-	vector<ofVideoDevice> devices = vidGrabber.listDevices();
-    
+    vector<ofVideoDevice> devices = vidGrabber.listDevices();
+
     // Log out all of the devices
     for(int i = 0; i < devices.size(); i++){
-		cout << devices[i].id << ": " << devices[i].deviceName;
-        if( devices[i].bAvailable ){
-            cout << endl;
-        }else{
-            cout << " - unavailable " << endl;
-        }
-	}
+    cout << devices[i].id << ": " << devices[i].deviceName;
+    if( devices[i].bAvailable ){
+      cout << endl;
+    } else {
+      cout << " - unavailable " << endl;
+    }
+    }
+
+    vidGrabber.setDeviceID(1);
+    vidGrabber.setDesiredFrameRate(60);
+    vidGrabber.initGrabber(camWidth,camHeight);
+    videoTexture.allocate(camWidth,camHeight, GL_RGB);
+    ofSetVerticalSync(true);
+    host = "localhost";
+    port = 1337;
+    osc.setup(host, port);
+
+    skySample = 4000;
+    lightsSample = 640800;
     
-  vidGrabber.setDeviceID(0);
-  vidGrabber.setDesiredFrameRate(60);
-  vidGrabber.initGrabber(camWidth,camHeight);
-  videoTexture.allocate(camWidth,camHeight, GL_RGB);
-  ofSetVerticalSync(true);
-  host = "localhost";
-  port = 1337;
-  osc.setup(host, port);
-  skySample = 4000;
-  lightsSample = 640800;
+    // Start Timers on setup
+    environsTimer.setStartTime();
 }
 
 //--------------------------------------------------------------
@@ -80,20 +86,25 @@ void ofApp::update(){
 	
 	vidGrabber.update();
 	
-	if (vidGrabber.isFrameNew()){
-		int totalPixels = camWidth*camHeight*3;
+	if (vidGrabber.isFrameNew()) {
+        int totalPixels = camWidth*camHeight*3;
 
-		unsigned char * pixels = vidGrabber.getPixels();
-    sky = ofFloatColor(vidGrabber.getPixels()[skySample*3]/255.f,
-                  vidGrabber.getPixels()[skySample*3+1]/255.f,
-                  vidGrabber.getPixels()[skySample*3+2]/255.f);
-    lights = ofFloatColor(vidGrabber.getPixels()[lightsSample*3]/255.f,
-                          vidGrabber.getPixels()[lightsSample*3+1]/255.f,
-                          vidGrabber.getPixels()[lightsSample*3+2]/255.f);
-    clearBundle();
-    addMessage("/lights",lights);
-    addMessage("/sky",sky);
-    sendBundle();
+        unsigned char * pixels = vidGrabber.getPixels();
+
+        // Clear the bundle to get ready to send info to OSC
+        clearBundle();
+            
+        if (environsTimer.getElapsedSeconds() >= 45) {
+            cout << "elapsed" << endl;
+            sky = ofFloatColor(vidGrabber.getPixels()[skySample*3]/255.f, vidGrabber.getPixels()[skySample*3+1]/255.f, vidGrabber.getPixels()[skySample*3+2]/255.f);
+            lights = ofFloatColor(vidGrabber.getPixels()[lightsSample*3]/255.f, vidGrabber.getPixels()[lightsSample*3+1]/255.f, vidGrabber.getPixels()[lightsSample*3+2]/255.f);
+            addMessage("/lights",lights);
+            addMessage("/sky",sky);
+            // Now restart the timer.
+            environsTimer.setStartTime();
+        }
+        
+        sendBundle();
 	}
 }
 
