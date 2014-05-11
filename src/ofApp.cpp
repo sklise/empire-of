@@ -64,15 +64,17 @@ void ofApp::setup(){
     }
     }
 
-    vidGrabber.setDeviceID(1);
+    // Normally #9 with Blackmagic
+    vidGrabber.setDeviceID(5);
     vidGrabber.setDesiredFrameRate(60);
+    vidGrabber.setUseTexture(false);
     vidGrabber.initGrabber(camWidth,camHeight);
-    videoTexture.allocate(camWidth,camHeight, GL_RGB);
+    cvImg.allocate(camWidth, camHeight);
     ofSetVerticalSync(true);
     host = "localhost";
     port = 1337;
     osc.setup(host, port);
-
+    totalPixels = camWidth*camHeight*3;
     skySample = 4000;
     lightsSample = 640800;
     
@@ -83,18 +85,19 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 void ofApp::update(){
 	ofBackground(100,100,100);
-	
 	vidGrabber.update();
 	
 	if (vidGrabber.isFrameNew()) {
-        int totalPixels = camWidth*camHeight*3;
+        clearBundle();
 
         unsigned char * pixels = vidGrabber.getPixels();
+        cvImg.resetROI();
+        cvImg.setFromPixels(pixels, camWidth, camHeight);
+        cvImg.setROI(flashX, flashY, flashWidth, flashHeight);
 
         // Clear the bundle to get ready to send info to OSC
-        clearBundle();
+
         if (environsTimer.getElapsedSeconds() >= environs_refresh_rate) {
-            cout << "elapsed" << endl;
             sky = ofFloatColor(vidGrabber.getPixels()[skySample*3]/255.f, vidGrabber.getPixels()[skySample*3+1]/255.f, vidGrabber.getPixels()[skySample*3+2]/255.f);
             lights = ofFloatColor(vidGrabber.getPixels()[lightsSample*3]/255.f, vidGrabber.getPixels()[lightsSample*3+1]/255.f, vidGrabber.getPixels()[lightsSample*3+2]/255.f);
             addMessage("/lights",lights);
@@ -112,7 +115,6 @@ void ofApp::draw(){
   if (showVideo) {
     ofSetHexColor(0xffffff);
     vidGrabber.draw(0,0);
-    videoTexture.draw(camWidth,0,camWidth,camHeight);
   }
   
   ofSetColor(sky);
@@ -128,19 +130,46 @@ void ofApp::draw(){
   ofSetColor(0,255,0,255);
   ofRect(lightsSample%camWidth,lightsSample/camWidth,4,4);
 
+    ofNoFill();
+    ofSetColor(255);
+    if (flashX && flashY && isMousePressed) {
+
+        ofRect(flashX, flashY, mouseX-flashX, mouseY-flashY);
+    } else if (flashX && flashY && flashWidth && flashHeight) {
+        ofRect(flashX, flashY, flashWidth, flashHeight);
+    }
+    ofFill();
+
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+    switch (key) {
+        case '1':
+            selectMode = "sky";
+            break;
+        case '2':
+            selectMode = "lowerSky";
+            break;
+        case '3':
+            selectMode = "lowerLights";
+            break;
+        case '4':
+            selectMode = "upperLights";
+            break;
+        case 'a':
+            selectMode = "flash";
+            break;
+    }
 }
 
 //--------------------------------------------------------------
 void ofApp::keyReleased(int key){
-  switch (key) {
-    case 32:
-      showVideo = !showVideo;
-      break;
+    selectMode = "";
+    switch (key) {
+        case ' ':
+            showVideo = !showVideo;
+            break;
   }
 }
 
@@ -156,12 +185,24 @@ void ofApp::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-
+    if (selectMode == "sky"){
+        skySample = y*camWidth+x;
+    } else if (selectMode == "lowerLights") {
+        lightsSample = y*camWidth+x;
+    } else if (selectMode == "flash" && !isMousePressed) {
+        isMousePressed = true;
+        flashX = x;
+        flashY = y;
+    }
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-
+    isMousePressed = false;
+    if (selectMode == "flash") {
+        flashWidth = x - flashX;
+        flashHeight = y - flashY;
+    }
 }
 
 //--------------------------------------------------------------
