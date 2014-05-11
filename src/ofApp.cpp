@@ -36,7 +36,7 @@ void ofApp::addMessage(string address, ofColor data) {
     ofxOscMessage msg;
     msg.setAddress(address);
     msg.addStringArg(string(ofToHex(data.getHex())));
-    cout << string(ofToHex(data.getHex())) << endl;
+    // cout << string(ofToHex(data.getHex())) << endl;
     bundle.addMessage(msg);
 }
 
@@ -75,11 +75,15 @@ void ofApp::setup(){
     port = 1337;
     osc.setup(host, port);
     totalPixels = camWidth*camHeight*3;
+    
     skySample = 4000;
     lightsSample = 640800;
+    threshold = 30;
     
     // Start Timers on setup
     environsTimer.setStartTime();
+    cvImg.allocate(camWidth,camHeight);
+    cvOld.allocate(camWidth,camHeight);
 }
 
 //--------------------------------------------------------------
@@ -91,9 +95,29 @@ void ofApp::update(){
         clearBundle();
 
         unsigned char * pixels = vidGrabber.getPixels();
-        cvImg.resetROI();
-        cvImg.setFromPixels(pixels, camWidth, camHeight);
-        cvImg.setROI(flashX, flashY, flashWidth, flashHeight);
+
+        if (flashX && flashY && flashWidth && flashHeight) {
+            cvImg.resetROI();
+            cvImg.setFromPixels(pixels, camWidth, camHeight);
+            
+            cvImg.setROI(flashX, flashY, flashWidth, flashHeight);
+            
+            cvOld.setROI(flashX, flashY, flashWidth, flashHeight);
+            
+            cvCurrentROI.allocate(flashWidth,flashHeight);
+            cvOldROI.allocate(flashWidth, flashHeight);
+            cvDiff.allocate(flashWidth,flashHeight);
+            cvCurrentROI.setFromPixels(cvImg.getRoiPixels(), flashWidth, flashHeight);
+            cvOldROI.setFromPixels(cvOld.getRoiPixels(), flashWidth, flashHeight);
+            
+            cvDiff.absDiff(cvOldROI, cvCurrentROI);
+            cvDiff.threshold(threshold);
+
+            contourFinder.findContours(cvDiff, 1, 1000, 10, true);
+            cout << contourFinder.nBlobs << endl;
+            
+            cvOld = cvImg;
+        }
 
         // Clear the bundle to get ready to send info to OSC
 
@@ -133,7 +157,6 @@ void ofApp::draw(){
     ofNoFill();
     ofSetColor(255);
     if (flashX && flashY && isMousePressed) {
-
         ofRect(flashX, flashY, mouseX-flashX, mouseY-flashY);
     } else if (flashX && flashY && flashWidth && flashHeight) {
         ofRect(flashX, flashY, flashWidth, flashHeight);
@@ -160,6 +183,14 @@ void ofApp::keyPressed(int key){
         case 'a':
             selectMode = "flash";
             break;
+        case '=': // the '+' button without shift
+			threshold ++;
+			if (threshold > 255) threshold = 255;
+			break;
+		case '-':
+			threshold --;
+			if (threshold < 2) threshold = 1;
+			break;
     }
 }
 
