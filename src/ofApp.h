@@ -6,6 +6,9 @@
 #include "ofxNetwork.h"
 #include "ofxOpenCv.h"
 
+//#define _USE_LIVE_VIDEO		// uncomment this to use a live camera
+                            // otherwise, we'll use a movie file
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -40,7 +43,11 @@ class ofApp : public ofBaseApp{
 
     // Camera
     //-------------------------------------------------------
-    ofVideoGrabber 		vidGrabber;
+    #ifdef _USE_LIVE_VIDEO
+        ofVideoGrabber 		vidGrabber;
+    #else
+        ofVideoPlayer 		vidPlayer;
+    #endif
     ofTexture         videoTexture;
     int camWidth;
     int camHeight;
@@ -60,9 +67,13 @@ class ofApp : public ofBaseApp{
     // Samples
     //-------------------------------------------------------
     int skySample;
-    int lightsSample;
+    int lowerSkySample;
+    int lowerLightsSample;
+    int upperLightsSample;
     ofColor sky;
-    ofColor lights;
+    ofColor lowerSky;
+    ofColor upperLights;
+    ofColor lowerLights;
 
     int flashX;
     int flashY;
