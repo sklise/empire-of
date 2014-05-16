@@ -80,6 +80,8 @@ class ofApp : public ofBaseApp{
     int flashWidth;
     int flashHeight;
 
+    stringstream flashes;
+
     // Integer for the number of seconds to wait before sampling the less active sections of the video.
     int environs_refresh_rate;
     ofxMSATimer environsTimer;
