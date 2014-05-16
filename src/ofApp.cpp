@@ -14,22 +14,6 @@ void ofApp::addMessage(string address, string data) {
     bundle.addMessage(msg);
 }
 
-template <>
-void ofApp::addMessage(string address, int data[]) {
-    ofxOscMessage msg;
-    msg.setAddress(address);
-
-    stringstream info;
-    info << "\"flashcount\":" << sizeof(data) << "," << endl;
-    msg.addStringArg(info.str());
-
-    for (int i = 0, length = sizeof(data); i < length; i++) {
-        msg.addIntArg(data[i]);
-    }
-
-    bundle.addMessage(msg);
-};
-
 void ofApp::sendBundle() {
 	osc.sendBundle(bundle);
 }
@@ -155,8 +139,8 @@ void ofApp::update(){
 
         if (contourFinder.nBlobs > 0) {
             flashes.str("");
-            flashes << "{\"count\":" << contourFinder.nBlobs << endl
-                    << "\"points\":[" << endl;
+            flashes << "{\"count\":" << contourFinder.nBlobs << ","
+                    << "\"points\":[";
             for (int i = 0; i < contourFinder.nBlobs; i++){
                 ofSetColor(255);
                 contourFinder.blobs[i].draw(0,0);
@@ -164,14 +148,12 @@ void ofApp::update(){
                     << contourFinder.blobs[i].boundingRect.getCenter().x
                     << ","
                     << contourFinder.blobs[i].boundingRect.getCenter().y
-                    << "],"
-                    << endl;
-                // if(contourFinder.blobs[i].hole){
-                    // flashes[2*i] = contourFinder.blobs[i].boundingRect.getCenter().x;
-                    // flashes[2*i+1] = contourFinder.blobs[i].boundingRect.getCenter().y;
-                // }
+                    << "]";
+                if (i + 1 < contourFinder.nBlobs) {
+                    flashes << ",";
+                }
             }
-            flashes << "]}" << endl;
+            flashes << "]}";
             addMessage("/flashes",flashes.str());
         }
 
