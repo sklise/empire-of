@@ -1,0 +1,19 @@
+<sky>
+    <lower>900000</lower>
+    <upper>900000</upper>
+</sky>
+<lights>
+    <lower>840800</lower>
+    <upper>540800</upper>
+</lights>
+<sampling>
+    <threshold>5</threshold>
+    <environsSampleRate>10</environsSampleRate>
+    <flashSampleRate>3</flashSampleRate>
+</sampling>
+<flash>
+    <x>583</x>
+    <y>378</y>
+    <width>145</width>
+    <height>47</height>
+</flash>

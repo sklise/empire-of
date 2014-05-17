@@ -19,6 +19,65 @@ void ofApp::sendBundle() {
 }
 
 //--------------------------------------------------------------
+void ofApp::loadSettings() {
+
+    threshold = 5;
+    environs_refresh_rate = 1;
+
+	ofxXmlSettings xml;
+    xml.loadFile("settings.xml");
+
+	xml.pushTag("sky");
+		skySample = xml.getValue("upper", 0);
+    cout << xml.getValue("upper", 0)<<endl;
+        skyLowerSample = xml.getValue("upper",0);
+	xml.popTag();
+
+    xml.pushTag("lights");
+        lightsLowerSample = xml.getValue("lower",0);
+        lightsUpperSample = xml.getValue("upper",0);
+    xml.popTag();
+
+    xml.pushTag("flash");
+        flashX = xml.getValue("x",0);
+        flashY = xml.getValue("y",0);
+        flashWidth = xml.getValue("width",0);
+        flashHeight = xml.getValue("height",0);
+    xml.popTag();
+
+}
+
+void ofApp::saveSettings() {
+    ofxXmlSettings xml;
+    xml.loadFile("settings.xml");
+
+    xml.pushTag("sky");
+        xml.setValue("lower", skyLowerSample);
+        xml.setValue("upper", skySample);
+    xml.popTag();
+
+    xml.pushTag("lights");
+        xml.setValue("lower",lightsLowerSample);
+        xml.setValue("upper",lightsUpperSample);
+    xml.popTag();
+
+    xml.pushTag("sampling");
+        xml.setValue("threshold", threshold);
+    xml.popTag();
+
+
+    xml.pushTag("flash");
+        xml.setValue("x",flashX);
+        xml.setValue("y",flashY);
+        xml.setValue("width",flashWidth);
+        xml.setValue("height",flashHeight);
+    xml.popTag();
+
+    xml.save("settings.xml");
+}
+
+
+//--------------------------------------------------------------
 void ofApp::setup(){
     camWidth = 1280;
     camHeight = 720;
@@ -52,6 +111,7 @@ void ofApp::setup(){
         // Load a movie, in fact, load this movie.
         vidPlayer.loadMovie("2014-05-12-empirecapture.mp4");
         vidPlayer.play();
+        vidPlayer.setVolume(0);
     #endif
 
     // Start Timers on setup
@@ -62,13 +122,7 @@ void ofApp::setup(){
     cvOld.allocate(camWidth,camHeight);
 
     // Initial settings for sampling variables
-    skySample = 4000;
-    lowerSkySample = 400000;
-    lowerLightsSample = 640800;
-    upperLightsSample = 840800;
-    threshold = 5;
-    environs_refresh_rate = 1;
-
+    loadSettings();
 }
 
 //--------------------------------------------------------------
@@ -124,12 +178,12 @@ void ofApp::update(){
 
         if (environsTimer.getElapsedSeconds() >= environs_refresh_rate) {
             sky = ofFloatColor(pixels[skySample*3]/255.f, pixels[skySample*3+1]/255.f, pixels[skySample*3+2]/255.f);
-            lowerSky = ofFloatColor(pixels[lowerSkySample*3]/255.f, pixels[lowerSkySample*3+1]/255.f, pixels[lowerSkySample*3+2]/255.f);
+            lowerSky = ofFloatColor(pixels[skyLowerSample*3]/255.f, pixels[skyLowerSample*3+1]/255.f, pixels[skyLowerSample*3+2]/255.f);
 
             addMessage("/sky",string(ofToHex(lowerSky.getHex()))+","+string(ofToHex(sky.getHex())));
 
-            lowerLights = ofFloatColor(pixels[lowerLightsSample*3]/255.f, pixels[lowerLightsSample*3+1]/255.f, pixels[lowerLightsSample*3+2]/255.f);
-            upperLights = ofFloatColor(pixels[upperLightsSample*3]/255.f, pixels[upperLightsSample*3+1]/255.f, pixels[upperLightsSample*3+2]/255.f);
+            lowerLights = ofFloatColor(pixels[lightsLowerSample*3]/255.f, pixels[lightsLowerSample*3+1]/255.f, pixels[lightsLowerSample*3+2]/255.f);
+            upperLights = ofFloatColor(pixels[lightsUpperSample*3]/255.f, pixels[lightsUpperSample*3+1]/255.f, pixels[lightsUpperSample*3+2]/255.f);
 
             addMessage("/lights",string(ofToHex(lowerLights.getHex()))+","+string(ofToHex(upperLights.getHex())));
 
@@ -178,14 +232,14 @@ void ofApp::draw(){
     ofSetColor(255,0,0,255);
     ofRect(skySample%camWidth,skySample/camWidth,4,4);
     ofSetColor(255,128,0,255);
-    ofRect(lowerSkySample%camWidth,lowerSkySample/camWidth,4,4);
+    ofRect(skyLowerSample%camWidth,skyLowerSample/camWidth,4,4);
 
 
     // draw the location of the lights sample
     ofSetColor(0,255,0,255);
-    ofRect(lowerLightsSample%camWidth,lowerLightsSample/camWidth,4,4);
+    ofRect(lightsLowerSample%camWidth,lightsLowerSample/camWidth,4,4);
     ofSetColor(0,255,255,255);
-    ofRect(upperLightsSample%camWidth,upperLightsSample/camWidth,4,4);
+    ofRect(lightsUpperSample%camWidth,lightsUpperSample/camWidth,4,4);
 
     ofNoFill();
     ofSetColor(255);
@@ -227,6 +281,9 @@ void ofApp::keyPressed(int key){
 			threshold --;
 			if (threshold < 2) threshold = 1;
 			break;
+        case 's':
+            saveSettings();
+            break;
     }
 }
 
@@ -255,11 +312,11 @@ void ofApp::mousePressed(int x, int y, int button){
     if (selectMode == "sky"){
         skySample = y*camWidth+x;
     } else if (selectMode == "lowerSky") {
-        lowerSkySample = y*camWidth+x;
+        skyLowerSample = y*camWidth+x;
     } else if (selectMode == "lowerLights") {
-        lowerLightsSample = y*camWidth+x;
+        lightsLowerSample = y*camWidth+x;
     } else if (selectMode == "upperLights") {
-        upperLightsSample = y*camWidth+x;
+        lightsUpperSample = y*camWidth+x;
     } else if (selectMode == "flash" && !isMousePressed) {
         isMousePressed = true;
         flashX = x;

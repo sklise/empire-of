@@ -5,16 +5,20 @@
 #include "ofxMSATimer.h"
 #include "ofxNetwork.h"
 #include "ofxOpenCv.h"
+#include "ofxXmlSettings.h"
 
 //#define _USE_LIVE_VIDEO		// uncomment this to use a live camera
                             // otherwise, we'll use a movie file
 
 class ofApp : public ofBaseApp{
 
-	public:
+public:
+
     void setup();
     void update();
     void draw();
+	void loadSettings();
+    void saveSettings();
 
     void keyPressed(int key);
     void keyReleased(int key);
@@ -67,9 +71,9 @@ class ofApp : public ofBaseApp{
     // Samples
     //-------------------------------------------------------
     int skySample;
-    int lowerSkySample;
-    int lowerLightsSample;
-    int upperLightsSample;
+    int skyLowerSample;
+    int lightsLowerSample;
+    int lightsUpperSample;
     ofColor sky;
     ofColor lowerSky;
     ofColor upperLights;
