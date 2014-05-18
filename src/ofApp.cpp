@@ -194,15 +194,17 @@ void ofApp::update(){
         if (contourFinder.nBlobs > 0) {
             flashes.str("");
             flashes << "{\"count\":" << contourFinder.nBlobs << ","
+                    << "\"width\":" << flashWidth << ","
+                    << "\"height\":" << flashHeight << ","
                     << "\"points\":[";
             for (int i = 0; i < contourFinder.nBlobs; i++){
                 ofSetColor(255);
                 contourFinder.blobs[i].draw(0,0);
-                flashes << "["
-                    << contourFinder.blobs[i].boundingRect.getCenter().x
-                    << ","
-                    << contourFinder.blobs[i].boundingRect.getCenter().y
-                    << "]";
+                flashes << "{"
+                    << "\"x\":" << contourFinder.blobs[i].boundingRect.getCenter().x << ","
+                    << "\"y\":" << contourFinder.blobs[i].boundingRect.getCenter().y << ","
+                    << "\"area\":" << contourFinder.blobs[i].area
+                    << "}";
                 if (i + 1 < contourFinder.nBlobs) {
                     flashes << ",";
                 }
