@@ -57,8 +57,8 @@ void ofApp::saveSettings() {
     xml.popTag();
 
     xml.pushTag("lights");
-        xml.setValue("lower",lightsLowerSample);
-        xml.setValue("upper",lightsUpperSample);
+        xml.setValue("lower", lightsLowerSample);
+        xml.setValue("upper", lightsUpperSample);
     xml.popTag();
 
     xml.pushTag("sampling");
