@@ -59,7 +59,8 @@ public:
 
     // Open CV
     //-------------------------------------------------------
-    ofxCvGrayscaleImage cvImg;
+    ofxCvColorImage cvImg;
+    ofxCvGrayscaleImage cvGray;
     ofxCvGrayscaleImage cvDiff;
     ofxCvGrayscaleImage cvOld;
     ofxCvGrayscaleImage cvOldROI;
@@ -88,7 +89,9 @@ public:
 
     // Integer for the number of seconds to wait before sampling the less active sections of the video.
     int environs_refresh_rate;
+    int flashRefreshRate;
     ofxMSATimer environsTimer;
+    ofxMSATimer flashTimer;
 
 
     // User Interface

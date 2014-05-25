@@ -1,5 +1,5 @@
 <sky>
-    <lower>837477</lower>
+    <lower>72082</lower>
     <upper>72082</upper>
 </sky>
 <lights>
@@ -7,7 +7,7 @@
     <upper>547221</upper>
 </lights>
 <sampling>
-    <threshold>5</threshold>
+    <threshold>51</threshold>
     <environsSampleRate>10</environsSampleRate>
     <flashSampleRate>3</flashSampleRate>
 </sampling>

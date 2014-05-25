@@ -21,9 +21,6 @@ void ofApp::sendBundle() {
 //--------------------------------------------------------------
 void ofApp::loadSettings() {
 
-    threshold = 5;
-    environs_refresh_rate = 1;
-
 	ofxXmlSettings xml;
     xml.loadFile("settings.xml");
 
@@ -45,6 +42,11 @@ void ofApp::loadSettings() {
         flashHeight = xml.getValue("height",0);
     xml.popTag();
 
+    xml.pushTag("sampling");
+        threshold = xml.getValue("threshold",5);
+        environs_refresh_rate = xml.getValue("environsRefreshRate", 10);
+        flashRefreshRate = xml.getValue("flashRefreshRate", 1);
+    xml.popTag();
 }
 
 void ofApp::saveSettings() {
@@ -63,6 +65,7 @@ void ofApp::saveSettings() {
 
     xml.pushTag("sampling");
         xml.setValue("threshold", threshold);
+        xml.setValue("environsRefreshRate", environs_refresh_rate);
     xml.popTag();
 
 
@@ -116,9 +119,11 @@ void ofApp::setup(){
 
     // Start Timers on setup
     environsTimer.setStartTime();
+    flashTimer.setStartTime();
 
     // Allocate space for two openCV images
     cvImg.allocate(camWidth,camHeight);
+    cvGray.allocate(camWidth,camHeight);
     cvOld.allocate(camWidth,camHeight);
 
     // Initial settings for sampling variables
@@ -154,18 +159,20 @@ void ofApp::update(){
         #endif
 
         if (flashX && flashY && flashWidth && flashHeight) {
-            cvImg.resetROI();
+            cvGray.resetROI();
             cvOld.resetROI();
 
             cvImg.setFromPixels(pixels, camWidth, camHeight);
 
-            cvImg.setROI(flashX, flashY, flashWidth, flashHeight);
+            cvGray = cvImg;
+            cvGray.setROI(flashX, flashY, flashWidth, flashHeight);
+            
             cvOld.setROI(flashX, flashY, flashWidth, flashHeight);
 
             cvCurrentROI.allocate(flashWidth,flashHeight);
             cvOldROI.allocate(flashWidth, flashHeight);
             cvDiff.allocate(flashWidth,flashHeight);
-            cvCurrentROI.setFromPixels(cvImg.getRoiPixels(), flashWidth, flashHeight);
+            cvCurrentROI.setFromPixels(cvGray.getRoiPixels(), flashWidth, flashHeight);
             cvOldROI.setFromPixels(cvOld.getRoiPixels(), flashWidth, flashHeight);
 
             cvDiff.absDiff(cvOldROI, cvCurrentROI);
@@ -173,7 +180,11 @@ void ofApp::update(){
 
             contourFinder.findContours(cvDiff, 1, 1000, 10, true);
 
-            cvOld = cvImg;
+            if (flashTimer.getElapsedSeconds() >= flashRefreshRate){
+                cvOld = cvGray;
+                flashTimer.setStartTime();
+                cout << "reset sample"<<endl;
+            }
         }
 
         if (environsTimer.getElapsedSeconds() >= environs_refresh_rate) {
@@ -229,7 +240,6 @@ void ofApp::draw(){
 
     }
 
-
     // draw the location of the sky sample
     ofSetColor(255,0,0,255);
     ofRect(skySample%camWidth,skySample/camWidth,4,4);
@@ -249,6 +259,7 @@ void ofApp::draw(){
         ofRect(flashX, flashY, mouseX-flashX, mouseY-flashY);
     } else if (flashX && flashY && flashWidth && flashHeight) {
         ofRect(flashX, flashY, flashWidth, flashHeight);
+        cvDiff.draw(flashX,flashY - flashHeight);
     }
     ofFill();
     stringstream reportStr;
