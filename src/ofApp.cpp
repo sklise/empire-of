@@ -168,7 +168,6 @@ void ofApp::update(){
             if (flashTimer.getElapsedSeconds() >= flashRefreshRate){
                 cvOld = cvGray;
                 flashTimer.setStartTime();
-                cout << "reset sample"<<endl;
             }
         }
 
