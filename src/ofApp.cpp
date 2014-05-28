@@ -24,17 +24,6 @@ void ofApp::loadSettings() {
 	ofxXmlSettings xml;
     xml.loadFile("settings.xml");
 
-	xml.pushTag("sky");
-		skySample = xml.getValue("upper", 0);
-    cout << xml.getValue("upper", 0)<<endl;
-        skyLowerSample = xml.getValue("upper",0);
-	xml.popTag();
-
-    xml.pushTag("lights");
-        lightsLowerSample = xml.getValue("lower",0);
-        lightsUpperSample = xml.getValue("upper",0);
-    xml.popTag();
-
     xml.pushTag("flash");
         flashX = xml.getValue("x",0);
         flashY = xml.getValue("y",0);
@@ -43,8 +32,10 @@ void ofApp::loadSettings() {
     xml.popTag();
 
     xml.pushTag("sampling");
+        skySample = xml.getValue("sky", 0);
+        lightsSample = xml.getValue("lights",0);
         threshold = xml.getValue("threshold",5);
-        environs_refresh_rate = xml.getValue("environsRefreshRate", 10);
+        environs_refresh_rate = xml.getValue("environsRefreshRate", 90);
         flashRefreshRate = xml.getValue("flashRefreshRate", 1);
     xml.popTag();
 }
@@ -53,19 +44,12 @@ void ofApp::saveSettings() {
     ofxXmlSettings xml;
     xml.loadFile("settings.xml");
 
-    xml.pushTag("sky");
-        xml.setValue("lower", skyLowerSample);
-        xml.setValue("upper", skySample);
-    xml.popTag();
-
-    xml.pushTag("lights");
-        xml.setValue("lower", lightsLowerSample);
-        xml.setValue("upper", lightsUpperSample);
-    xml.popTag();
-
     xml.pushTag("sampling");
+        xml.setValue("sky", skySample);
+        xml.setValue("lights", lightsSample);
         xml.setValue("threshold", threshold);
         xml.setValue("environsRefreshRate", environs_refresh_rate);
+        xml.setValue("flashRefreshRate", flashRefreshRate);
     xml.popTag();
 
 
@@ -158,6 +142,7 @@ void ofApp::update(){
             pixels = vidPlayer.getPixels();
         #endif
 
+        // Flash stuff
         if (flashX && flashY && flashWidth && flashHeight) {
             cvGray.resetROI();
             cvOld.resetROI();
@@ -166,7 +151,7 @@ void ofApp::update(){
 
             cvGray = cvImg;
             cvGray.setROI(flashX, flashY, flashWidth, flashHeight);
-            
+
             cvOld.setROI(flashX, flashY, flashWidth, flashHeight);
 
             cvCurrentROI.allocate(flashWidth,flashHeight);
@@ -187,16 +172,15 @@ void ofApp::update(){
             }
         }
 
+        // Environs sampling
         if (environsTimer.getElapsedSeconds() >= environs_refresh_rate) {
             sky = ofFloatColor(pixels[skySample*3]/255.f, pixels[skySample*3+1]/255.f, pixels[skySample*3+2]/255.f);
-            lowerSky = ofFloatColor(pixels[skyLowerSample*3]/255.f, pixels[skyLowerSample*3+1]/255.f, pixels[skyLowerSample*3+2]/255.f);
 
-            addMessage("/sky",string(ofToHex(lowerSky.getHex()))+","+string(ofToHex(sky.getHex())));
+            addMessage("/sky",string(ofToHex(sky.getHex())));
 
-            lowerLights = ofFloatColor(pixels[lightsLowerSample*3]/255.f, pixels[lightsLowerSample*3+1]/255.f, pixels[lightsLowerSample*3+2]/255.f);
-            upperLights = ofFloatColor(pixels[lightsUpperSample*3]/255.f, pixels[lightsUpperSample*3+1]/255.f, pixels[lightsUpperSample*3+2]/255.f);
+            lights = ofFloatColor(pixels[lightsSample*3]/255.f, pixels[lightsSample*3+1]/255.f, pixels[lightsSample*3+2]/255.f);
 
-            addMessage("/lights",string(ofToHex(lowerLights.getHex()))+","+string(ofToHex(upperLights.getHex())));
+            addMessage("/lights",string(ofToHex(lights.getHex())));
 
             // Now restart the timer.
             environsTimer.setStartTime();
@@ -208,7 +192,8 @@ void ofApp::update(){
                     << "\"width\":" << flashWidth << ","
                     << "\"height\":" << flashHeight << ","
                     << "\"points\":[";
-            for (int i = 0; i < contourFinder.nBlobs; i++){
+
+            for (int i = 0; i < contourFinder.nBlobs; i++) {
                 ofSetColor(255);
                 contourFinder.blobs[i].draw(0,0);
                 flashes << "{"
@@ -220,6 +205,7 @@ void ofApp::update(){
                     flashes << ",";
                 }
             }
+
             flashes << "]}";
             addMessage("/flashes",flashes.str());
         }
@@ -243,15 +229,11 @@ void ofApp::draw(){
     // draw the location of the sky sample
     ofSetColor(255,0,0,255);
     ofRect(skySample%camWidth,skySample/camWidth,4,4);
-    ofSetColor(255,128,0,255);
-    ofRect(skyLowerSample%camWidth,skyLowerSample/camWidth,4,4);
 
 
     // draw the location of the lights sample
-    ofSetColor(0,255,0,255);
-    ofRect(lightsLowerSample%camWidth,lightsLowerSample/camWidth,4,4);
     ofSetColor(0,255,255,255);
-    ofRect(lightsUpperSample%camWidth,lightsUpperSample/camWidth,4,4);
+    ofRect(lightsSample%camWidth,lightsSample/camWidth,4,4);
 
     ofNoFill();
     ofSetColor(255);
@@ -263,8 +245,7 @@ void ofApp::draw(){
     }
     ofFill();
     stringstream reportStr;
-    reportStr << "threshold " << threshold << endl
-                << "lowerSky" << lowerSky << endl;
+    reportStr << "threshold " << threshold << endl;
     ofDrawBitmapString(reportStr.str(),20,40 );
 }
 
@@ -272,16 +253,10 @@ void ofApp::draw(){
 void ofApp::keyPressed(int key){
     switch (key) {
         case '1':
-            selectMode = "lowerSky";
-            break;
-        case '2':
             selectMode = "sky";
             break;
-        case '3':
-            selectMode = "lowerLights";
-            break;
-        case '4':
-            selectMode = "upperLights";
+        case '2':
+            selectMode = "lights";
             break;
         case 'a':
             selectMode = "flash";
@@ -324,12 +299,8 @@ void ofApp::mouseDragged(int x, int y, int button){
 void ofApp::mousePressed(int x, int y, int button){
     if (selectMode == "sky"){
         skySample = y*camWidth+x;
-    } else if (selectMode == "lowerSky") {
-        skyLowerSample = y*camWidth+x;
-    } else if (selectMode == "lowerLights") {
-        lightsLowerSample = y*camWidth+x;
-    } else if (selectMode == "upperLights") {
-        lightsUpperSample = y*camWidth+x;
+    } else if (selectMode == "lights") {
+        lightsSample = y*camWidth+x;
     } else if (selectMode == "flash" && !isMousePressed) {
         isMousePressed = true;
         flashX = x;

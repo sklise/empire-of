@@ -72,13 +72,9 @@ public:
     // Samples
     //-------------------------------------------------------
     int skySample;
-    int skyLowerSample;
-    int lightsLowerSample;
-    int lightsUpperSample;
+    int lightsSample;
     ofColor sky;
-    ofColor lowerSky;
-    ofColor upperLights;
-    ofColor lowerLights;
+    ofColor lights;
 
     int flashX;
     int flashY;

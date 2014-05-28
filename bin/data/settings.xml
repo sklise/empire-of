@@ -10,6 +10,10 @@
     <threshold>51</threshold>
     <environsSampleRate>10</environsSampleRate>
     <flashSampleRate>3</flashSampleRate>
+    <sky>216689</sky>
+    <lights>565144</lights>
+    <environsRefreshRate>90</environsRefreshRate>
+    <flashRefreshRate>1</flashRefreshRate>
 </sampling>
 <flash>
     <x>574</x>
